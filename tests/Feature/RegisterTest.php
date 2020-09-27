@@ -39,7 +39,6 @@ class RegisterTest extends TestCase
     public function testsRequiresPasswordEmailAndName()
     {
         $this->json('post', '/api/register')
-            ->dump()
             ->assertStatus(422)
             ->assertJson([
                 'errors' => [
