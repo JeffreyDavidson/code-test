@@ -17,7 +17,7 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        return Auth::guard('api')->user()->products;
+        return Product::all();
     }
 
     /**

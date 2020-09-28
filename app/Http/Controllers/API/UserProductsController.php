@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\User;
 use App\Product;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
 class UserProductsController extends Controller
 {
+    public function index(User $user)
+    {
+        $products = $user->products;
+
+        return response()->json($products, 200);
+    }
+
     /**
      * Store a newly created resource in storage.
      *

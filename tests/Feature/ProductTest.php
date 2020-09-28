@@ -94,7 +94,7 @@ class ProductTest extends TestCase
             ]);
     }
 
-    public function testProductsAreListedByAUserCorrectly()
+    public function testProductsAreListedCorrectly()
     {
         $user = factory(User::class)->create();
         $token = $user->generateToken();
@@ -103,8 +103,6 @@ class ProductTest extends TestCase
             'name' => 'First Product',
             'description' => 'First Description',
         ]);
-
-        $user->products()->attach($product);
 
         factory(Product::class)->create([
             'name' => 'Second Product',
@@ -117,6 +115,7 @@ class ProductTest extends TestCase
             ->assertStatus(200)
             ->assertJson([
                 ['name' => 'First Product', 'description' => 'First Description'],
+                ['name' => 'Second Product', 'description' => 'Second Description'],
             ])
             ->assertJsonStructure([
                 '*' => ['id', 'description', 'name'],
@@ -197,5 +196,34 @@ class ProductTest extends TestCase
 
         $this->json('DELETE', '/api/products/' . $product->id.'/detach', [], $headers)
             ->assertStatus(403);
+    }
+
+    public function testProductsOfAUserCorrectly()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+
+        $product = factory(Product::class)->create([
+            'name' => 'First Product',
+            'description' => 'First Description',
+        ]);
+
+        $user->products()->attach($product);
+
+        factory(Product::class)->create([
+            'name' => 'Second Product',
+            'description' => 'Second Description'
+        ]);
+
+        $headers = ['Authorization' => "Bearer $token"];
+
+        $response = $this->json('GET', '/api/users/'.$user->id.'/products', [], $headers)
+            ->assertStatus(200)
+            ->assertJson([
+                ['name' => 'First Product', 'description' => 'First Description'],
+            ])
+            ->assertJsonStructure([
+                '*' => ['id', 'description', 'name'],
+            ]);
     }
 }
