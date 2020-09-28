@@ -23,17 +23,20 @@ class ProductsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\CreateProductRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(CreateProductRequest $request)
     {
+        // Create a new product for the user.
         $product = Auth::guard('api')->user()->products()->create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
             'price' => $request->input('price'),
         ]);
 
+        // Check to see if the image there was an image submitted for the product
+        // if one exists store it and update the product with the image path.
         if ($request->file('image')->isValid()) {
             $imageName = $request->file('image')->getClientOriginalName();
             $path = $request->image->storeAs('products', $imageName);
@@ -46,7 +49,7 @@ class ProductsController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
     public function show(Product $product)
@@ -57,8 +60,8 @@ class ProductsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Http\Requests\UpdateProductRequest $request
+     * @param  \App\Product $product
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateProductRequest $request, Product $product)

@@ -14,6 +14,8 @@ class CreateProductRequest extends FormRequest
      */
     public function authorize()
     {
+        // Check to see if the authenticated user has an active subscription
+        // If they do they are authorized to create a new product.
         return Auth::guard('api')->user()->activeSubscription()->exists();
     }
 

@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\API;
 
-use App\User;
-use App\Product;
 use App\Http\Controllers\Controller;
+use App\Product;
+use App\User;
 use Illuminate\Support\Facades\Auth;
 
 class UserProductsController extends Controller
 {
+    /**
+     * Retrieve all products owned by the user.
+     *
+     * @param  \App\User $user
+     * @return \Illuminate\Http\Response
+     */
     public function index(User $user)
     {
         $products = $user->products;
@@ -17,8 +23,9 @@ class UserProductsController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Add a product to a user.
      *
+     * @param  \App\Product $product
      * @return \Illuminate\Http\Response
      */
     public function store(Product $product)

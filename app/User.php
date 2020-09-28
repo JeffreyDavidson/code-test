@@ -38,11 +38,21 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Retrieve the users full name.
+     *
+     * @return string
+     */
     public function getNameAttribute()
     {
         return "{$this->first_name} {$this->last_name}";
     }
 
+    /**
+     * Generates a token for a user.
+     *
+     * @return string
+     */
     public function generateToken()
     {
         $this->api_token = Str::random(60);
@@ -51,20 +61,35 @@ class User extends Authenticatable
         return $this->api_token;
     }
 
+    /**
+     * A user belongs to many products.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function products()
     {
         return $this->belongsToMany(Product::class);
     }
 
+    /**
+     * A user can have many subscriptions.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
     }
 
+    /**
+     * Retrieve the active subscription for the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function activeSubscription()
     {
         return $this->hasOne(Subscription::class)
-            ->where('started_at', '<', now())
-            ->whereNull('ended_at');
+                    ->where('started_at', '<', now())
+                    ->whereNull('ended_at');
     }
 }

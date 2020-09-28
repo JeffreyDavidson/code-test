@@ -22,6 +22,11 @@ class Product extends Model
         'user_id' => 'int',
     ];
 
+    /**
+     * Return an array of data for a product.
+     *
+     * @return array
+     */
     public function toArray()
     {
         return [
