@@ -83,4 +83,18 @@ class ProductTest extends TestCase
                 '*' => ['id', 'description', 'name'],
             ]);
     }
+
+    public function testsProductsAreDeletedCorrectly()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+        $headers = ['Authorization' => "Bearer $token"];
+        $product = factory(Product::class)->create([
+            'name' => 'First Product',
+            'description' => 'First Description',
+        ]);
+
+        $this->json('DELETE', '/api/products/' . $product->id, [], $headers)->assertStatus(204);
+        $this->assertDeleted('products', $product->toArray());
+    }
 }
