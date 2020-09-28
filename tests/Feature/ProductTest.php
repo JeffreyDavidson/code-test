@@ -56,6 +56,31 @@ class ProductTest extends TestCase
                 'description' => 'New Description',
                 'price' => 7200,
                 'image' => 'new-product-image.jpg',
+    public function testProductsAreListedByAUserCorrectly()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+
+        factory(Product::class)->create([
+            'user_id' => $user,
+            'name' => 'First Product',
+            'description' => 'First Description',
+        ]);
+
+        factory(Product::class)->create([
+            'name' => 'Second Product',
+            'description' => 'Second Description'
+        ]);
+
+        $headers = ['Authorization' => "Bearer $token"];
+
+        $response = $this->json('GET', '/api/products', [], $headers)
+            ->assertStatus(200)
+            ->assertJson([
+                ['name' => 'First Product', 'description' => 'First Description'],
+            ])
+            ->assertJsonStructure([
+                '*' => ['id', 'description', 'name'],
             ]);
     }
 }
