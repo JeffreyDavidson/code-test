@@ -3,6 +3,7 @@
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
 use App\User;
+use App\Subscription;
 use Faker\Generator as Faker;
 use Illuminate\Support\Str;
 
@@ -26,4 +27,12 @@ $factory->define(User::class, function (Faker $faker) {
         'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
         'remember_token' => Str::random(10),
     ];
+});
+
+$factory->state(User::class, 'withActiveSubscription', function ($faker) {
+    return [];
+});
+
+$factory->afterCreatingState(User::class, 'withActiveSubscription', function ($user, $faker) {
+    $user->subscriptions()->create(factory(Subscription::class)->make(['started_at' => now()->subDays(3), 'ended_at' => null])->toArray());
 });

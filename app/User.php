@@ -55,4 +55,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class);
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('started_at', '<', now())
+            ->whereNull('ended_at');
+    }
 }

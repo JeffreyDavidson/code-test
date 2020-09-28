@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Product;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Product;
 use Illuminate\Support\Facades\Auth;
 
 class ProductsController extends Controller
@@ -25,9 +26,19 @@ class ProductsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CreateProductRequest $request)
     {
-        $product = Auth::guard('api')->user()->products()->create($request->all());
+        $product = Auth::guard('api')->user()->products()->create([
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'price' => $request->input('price'),
+        ]);
+
+        if ($request->file('image')->isValid()) {
+            $imageName = $request->file('image')->getClientOriginalName();
+            $path = $request->image->storeAs('products', $imageName);
+            $product->update(['image' => $path]);
+        }
 
         return response()->json($product, 201);
     }
@@ -50,9 +61,19 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->all());
+        $product->update([
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'price' => $request->input('price'),
+        ]);
+
+        if ($request->file('image')->isValid()) {
+            $imageName = $request->file('image')->getClientOriginalName();
+            $path = $request->image->storeAs('products', $imageName);
+            $product->update(['image' => $path]);
+        }
 
         return response()->json($product, 200);
     }

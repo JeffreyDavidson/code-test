@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\User;
 use App\Product;
 use Tests\TestCase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -12,29 +14,63 @@ class ProductTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testsProductsAreCreatedCorrectly()
+    public function testsProductsForUsersWithAnActiveSubscriptionAreCreatedCorrectly()
     {
-        $user = factory(User::class)->create();
+        Storage::fake('products');
+
+        $file = UploadedFile::fake()->image('lorem.jpg');
+        $user = factory(User::class)->states('withActiveSubscription')->create();
         $token = $user->generateToken();
+
         $headers = ['Authorization' => "Bearer $token"];
         $payload = [
             'name' => 'Lorem',
             'description' => 'Ipsum',
             'price' => 8900,
-            'image' => 'lorem.jpg',
+            'image' => $file,
         ];
 
         $this->json('POST', '/api/products', $payload, $headers)
             ->assertStatus(201)
-            ->assertJson(['id' => 1, 'name' => 'Lorem', 'description' => 'Ipsum', 'price' => 8900, 'image' => 'lorem.jpg', 'user_id' => $user->id]);
+            ->assertJson([
+                'id' => 1,
+                'name' => 'Lorem',
+                'description' => 'Ipsum',
+                'price' => 8900,
+                'image' => 'products/'.$file->getClientOriginalName(),
+                'user_id' => $user->id
+            ]);
     }
 
-    public function testsArticlesAreUpdatedCorrectly()
+    public function testsProductsForUsersWithoutAnActiveSubscriptionAreCreatedCorrectly()
     {
+        Storage::fake('products');
+
+        $file = UploadedFile::fake()->image('lorem.jpg');
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+
+        $headers = ['Authorization' => "Bearer $token"];
+        $payload = [
+            'name' => 'Lorem',
+            'description' => 'Ipsum',
+            'price' => 8900,
+            'image' => $file,
+        ];
+
+        $this->json('POST', '/api/products', $payload, $headers)->assertForbidden();
+    }
+
+    public function testsProductsAreUpdatedCorrectly()
+    {
+        Storage::fake('products');
+
+        $file = UploadedFile::fake()->image('new-product-image.jpg');
         $user = factory(User::class)->create();
         $token = $user->generateToken();
         $headers = ['Authorization' => "Bearer $token"];
         $product = factory(Product::class)->create([
+            'user_id' => $user,
             'name' => 'Old Name',
             'description' => 'Old Desciption',
             'price' => 8900,
@@ -44,8 +80,8 @@ class ProductTest extends TestCase
         $payload = [
             'name' => 'New Name',
             'description' => 'New Description',
-            'price' => '7200',
-            'image' => 'new-product-image.jpg',
+            'price' => 7200,
+            'image' => $file,
         ];
 
         $response = $this->json('PUT', '/api/products/' . $product->id, $payload, $headers)
@@ -55,7 +91,11 @@ class ProductTest extends TestCase
                 'name' => 'New Name',
                 'description' => 'New Description',
                 'price' => 7200,
-                'image' => 'new-product-image.jpg',
+                'image' => 'products/'.$file->getClientOriginalName(),
+                'user_id' => $user->id
+            ]);
+    }
+
     public function testProductsAreListedByAUserCorrectly()
     {
         $user = factory(User::class)->create();
