@@ -30,7 +30,6 @@ class Product extends Model
             'description' => $this->description,
             'price' => $this->price,
             'image' => $this->image,
-            'user_id' => $this->user_id
         ];
     }
 }

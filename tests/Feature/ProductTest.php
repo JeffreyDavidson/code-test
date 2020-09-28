@@ -38,7 +38,6 @@ class ProductTest extends TestCase
                 'description' => 'Ipsum',
                 'price' => 8900,
                 'image' => 'products/'.$file->getClientOriginalName(),
-                'user_id' => $user->id
             ]);
     }
 
@@ -70,12 +69,12 @@ class ProductTest extends TestCase
         $token = $user->generateToken();
         $headers = ['Authorization' => "Bearer $token"];
         $product = factory(Product::class)->create([
-            'user_id' => $user,
             'name' => 'Old Name',
             'description' => 'Old Desciption',
             'price' => 8900,
             'image' => 'old-product-image.jpg'
         ]);
+        $user->products()->attach($product);
 
         $payload = [
             'name' => 'New Name',
@@ -92,7 +91,6 @@ class ProductTest extends TestCase
                 'description' => 'New Description',
                 'price' => 7200,
                 'image' => 'products/'.$file->getClientOriginalName(),
-                'user_id' => $user->id
             ]);
     }
 
@@ -101,11 +99,12 @@ class ProductTest extends TestCase
         $user = factory(User::class)->create();
         $token = $user->generateToken();
 
-        factory(Product::class)->create([
-            'user_id' => $user,
+        $product = factory(Product::class)->create([
             'name' => 'First Product',
             'description' => 'First Description',
         ]);
+
+        $user->products()->attach($product);
 
         factory(Product::class)->create([
             'name' => 'Second Product',
@@ -143,11 +142,60 @@ class ProductTest extends TestCase
         $user = factory(User::class)->create();
         $token = $user->generateToken();
         $headers = ['Authorization' => "Bearer $token"];
-        $product = factory(Product::class)->create([
-            'user_id' => $user,
-        ]);
+        $product = factory(Product::class)->create();
+        $user->products()->attach($product);
 
-        $this->json('GET', '/api/products/' . $product->id, [], $headers)->assertStatus(200)
-        ->assertJson($product->toArray());
+        $this->json('GET', '/api/products/' . $product->id, [], $headers)
+            ->assertStatus(200)
+            ->assertJson($product->toArray());
+    }
+
+    public function testsProductsCanBeAddedToAUserCorrectly()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+        $headers = ['Authorization' => "Bearer $token"];
+        $product = factory(Product::class)->create();
+
+        $this->json('POST', '/api/products/' . $product->id.'/attach', [], $headers)
+            ->assertStatus(201)
+            ->assertJson($product->toArray());
+    }
+
+    public function testsProductsCannotBeAddedToAUserWhenUserAlreadyHasProduct()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+        $headers = ['Authorization' => "Bearer $token"];
+        $product = factory(Product::class)->create();
+        $user->products()->attach($product);
+
+        $this->json('POST', '/api/products/' . $product->id.'/attach', [], $headers)
+            ->assertStatus(403);
+    }
+
+    public function testsProductsCanBeRemovedFromAUserCorrectly()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+        $headers = ['Authorization' => "Bearer $token"];
+        $product = factory(Product::class)->create();
+        $user->products()->attach($product);
+        $this->assertTrue($user->products->contains($product));
+
+        $this->json('DELETE', '/api/products/' . $product->id.'/detach', [], $headers)->assertStatus(200);
+        $this->assertFalse($user->fresh()->products->contains($product));
+    }
+
+    public function testsProductsCannotRemoveFromAUserThatDoesntHaveProduct()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+        $headers = ['Authorization' => "Bearer $token"];
+        $product = factory(Product::class)->create();
+        $this->assertFalse($user->products->contains($product));
+
+        $this->json('DELETE', '/api/products/' . $product->id.'/detach', [], $headers)
+            ->assertStatus(403);
     }
 }
