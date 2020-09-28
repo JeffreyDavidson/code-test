@@ -13,6 +13,15 @@ class Product extends Model
      */
     protected $fillable = ['name', 'description', 'price', 'image'];
 
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'user_id' => 'int',
+    ];
+
     public function toArray()
     {
         return [

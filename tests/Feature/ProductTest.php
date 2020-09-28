@@ -97,4 +97,17 @@ class ProductTest extends TestCase
         $this->json('DELETE', '/api/products/' . $product->id, [], $headers)->assertStatus(204);
         $this->assertDeleted('products', $product->toArray());
     }
+
+    public function testsProductsCanBeRetrievedCorrectly()
+    {
+        $user = factory(User::class)->create();
+        $token = $user->generateToken();
+        $headers = ['Authorization' => "Bearer $token"];
+        $product = factory(Product::class)->create([
+            'user_id' => $user,
+        ]);
+
+        $this->json('GET', '/api/products/' . $product->id, [], $headers)->assertStatus(200)
+        ->assertJson($product->toArray());
+    }
 }

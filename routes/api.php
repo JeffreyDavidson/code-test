@@ -23,6 +23,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('products', 'API\ProductsController@store');
     Route::put('products/{product}', 'API\ProductsController@update');
     Route::delete('products/{product}', 'API\ProductsController@destroy');
+    Route::get('products/{product}', 'API\ProductsController@show');
 });
 
 
